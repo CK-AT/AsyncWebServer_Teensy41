@@ -42,7 +42,7 @@
 #endif
 
 #include <vector>
-
+#include <SD.h>
 // It is possible to restore these defines, but one can use _min and _max instead. Or std::min, std::max.
 
 /////////////////////////////////////////////////
@@ -123,6 +123,19 @@ class AsyncAbstractResponse: public AsyncWebServerResponse
 
 #define TEMPLATE_PARAM_NAME_LENGTH 32
 
+class AsyncFileResponse: public AsyncAbstractResponse {
+
+  private:
+    File _content;
+    String _path;
+    void _setContentType(const String& path);
+  public:
+    AsyncFileResponse(FS &fs, const String& path, const String& contentType=String(), bool download=false, AwsTemplateProcessor callback=nullptr);
+    AsyncFileResponse(File content, const String& path, const String& contentType=String(), bool download=false, AwsTemplateProcessor callback=nullptr);
+    ~AsyncFileResponse();
+    bool _sourceValid() const { return !!(&_content);}
+    virtual size_t _fillBuffer(uint8_t *buf, size_t maxLen) override;
+};
 /////////////////////////////////////////////////
 
 class AsyncStreamResponse: public AsyncAbstractResponse
