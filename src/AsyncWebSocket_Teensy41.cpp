@@ -1882,7 +1882,7 @@ void AsyncWebSocketResponse::_respond(AsyncWebServerRequest * request)
   }
 
   String out = _assembleHead(request->version());
-  request->client()->write(out.c_str(), _headLength);
+  request->client()->write(out.c_str(), _headLength, TCP_WRITE_FLAG_COPY);
 
   _state = RESPONSE_WAIT_ACK;
 }

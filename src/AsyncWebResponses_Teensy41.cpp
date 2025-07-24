@@ -409,7 +409,7 @@ void AsyncBasicResponse::_respond(AsyncWebServerRequest *request)
   {
     LOGDEBUG("Step 1");
 
-    _writtenLength += request->client()->write(out.c_str(), outLen);
+    _writtenLength += request->client()->write(out.c_str(), outLen, TCP_WRITE_FLAG_COPY);
     _state = RESPONSE_WAIT_ACK;
   }
   else if (_contentLength && space >= outLen + _contentLength)
@@ -424,7 +424,7 @@ void AsyncBasicResponse::_respond(AsyncWebServerRequest *request)
 
     out += _content;
     outLen += _contentLength;
-    _writtenLength += request->client()->write(out.c_str(), outLen);
+    _writtenLength += request->client()->write(out.c_str(), outLen, TCP_WRITE_FLAG_COPY);
 
     _state = RESPONSE_WAIT_ACK;
   }
@@ -446,7 +446,7 @@ void AsyncBasicResponse::_respond(AsyncWebServerRequest *request)
 
     LOGDEBUG1("partial =", partial);
 
-    _writtenLength += request->client()->write(partial.c_str(), partial.length());
+    _writtenLength += request->client()->write(partial.c_str(), partial.length(), TCP_WRITE_FLAG_COPY);
 
     _state = RESPONSE_CONTENT;
   }
@@ -487,7 +487,7 @@ void AsyncBasicResponse::_respond(AsyncWebServerRequest *request)
 
     LOGDEBUG1("out =", out);
 
-    _writtenLength += request->client()->write(out.c_str(), outLen);
+    _writtenLength += request->client()->write(out.c_str(), outLen, TCP_WRITE_FLAG_COPY);
     _state = RESPONSE_CONTENT;
   }
   else
@@ -539,14 +539,14 @@ size_t AsyncBasicResponse::_ack(AsyncWebServerRequest *request, size_t len, uint
         tmpString = _partialHeader.substring(space);
         _partialHeader = tmpString;
 
-        _writtenLength += request->client()->write(_subHeader.c_str(), space);
+        _writtenLength += request->client()->write(_subHeader.c_str(), space, TCP_WRITE_FLAG_COPY);
 
         return (_partialHeader.length());
       }
       else
       {
         // _partialHeader is <= space length - therefore send the whole thing, and make the remaining length = to the _contrentLength
-        _writtenLength += request->client()->write(_partialHeader.c_str(), _partialHeader.length());
+        _writtenLength += request->client()->write(_partialHeader.c_str(), _partialHeader.length(), TCP_WRITE_FLAG_COPY);
 
         _partialHeader = String();
 
@@ -612,7 +612,7 @@ size_t AsyncBasicResponse::_ack(AsyncWebServerRequest *request, size_t len, uint
 
     LOGDEBUG1("In space>available : output =", out);
 
-    _writtenLength += request->client()->write(out.c_str(), space);
+    _writtenLength += request->client()->write(out.c_str(), space, TCP_WRITE_FLAG_COPY);
 
     return space;
   }
@@ -687,7 +687,7 @@ size_t AsyncAbstractResponse::_ack(AsyncWebServerRequest *request, size_t len, u
     {
       String out = _head.substring(0, space);
       _head = _head.substring(space);
-      _writtenLength += request->client()->write(out.c_str(), out.length());
+      _writtenLength += request->client()->write(out.c_str(), out.length(), TCP_WRITE_FLAG_COPY);
 
       return out.length();
     }
@@ -775,7 +775,7 @@ size_t AsyncAbstractResponse::_ack(AsyncWebServerRequest *request, size_t len, u
 
     if (outLen)
     {
-      _writtenLength += request->client()->write((const char*)buf, outLen);
+      _writtenLength += request->client()->write((const char*)buf, outLen, TCP_WRITE_FLAG_COPY);
     }
 
     if (_chunked)
