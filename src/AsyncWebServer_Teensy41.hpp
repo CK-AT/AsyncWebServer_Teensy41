@@ -59,7 +59,7 @@
 
 #include "Arduino.h"
 #include <functional>
-
+#include <FS.h>
 #include <Teensy41_AsyncTCP.hpp>
 
 #include "AsyncWebServer_Teensy41_Debug.h"
@@ -324,6 +324,7 @@ class AsyncWebServerRequest
     void _handleUploadEnd();
 
   public:
+    File _tempFile;
     void *_tempObject;
 
     AsyncWebServerRequest(AsyncWebServer*, AsyncClient*);
@@ -432,6 +433,10 @@ class AsyncWebServerRequest
 
     AsyncWebServerResponse *beginResponse(int code, const String& contentType = String(), const String& content = String());
     AsyncWebServerResponse *beginResponse(int code, const String& contentType, const char * content = nullptr); // RSMOD
+
+    AsyncWebServerResponse *beginResponse(FS &fs, const String& path, const String& contentType, bool download, AwsTemplateProcessor callback);
+
+    AsyncWebServerResponse *beginResponse(File content, const String& path, const String& contentType, bool download, AwsTemplateProcessor callback);
     
     // KH add
     AsyncWebServerResponse *beginResponse(int code, const String& contentType, const uint8_t * content, size_t len, 
@@ -698,7 +703,7 @@ class AsyncWebServerResponse
  * */
 
 typedef std::function<void(AsyncWebServerRequest *request)> ArRequestHandlerFunction;
-typedef std::function<void(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)> ArUploadHandlerFunction;
+typedef std::function<void(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final)> ArUploadHandlerFunction;
 typedef std::function<void(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)> ArBodyHandlerFunction;
 
 /////////////////////////////////////////////////////////
@@ -734,8 +739,10 @@ class AsyncWebServer
     AsyncCallbackWebHandler& on(const char* uri, WebRequestMethodComposite method, ArRequestHandlerFunction onRequest);
     AsyncCallbackWebHandler& on(const char* uri, WebRequestMethodComposite method, ArRequestHandlerFunction onRequest, ArUploadHandlerFunction onUpload);
     AsyncCallbackWebHandler& on(const char* uri, WebRequestMethodComposite method, ArRequestHandlerFunction onRequest, ArUploadHandlerFunction onUpload, ArBodyHandlerFunction onBody);
+    AsyncStaticWebHandler& serveStatic(const char* uri, FS* fs, const char* path, const char* cache_control = NULL);
 
     void onNotFound(ArRequestHandlerFunction fn);  //called when handler is not assigned
+    void onFileUpload(ArUploadHandlerFunction fn); //handle file uploads
     void onRequestBody(ArBodyHandlerFunction fn); //handle posts with plain body content (JSON often transmitted this way as a request)
 
     void reset(); //remove all writers and handlers, with onNotFound/onFileUpload/onRequestBody
