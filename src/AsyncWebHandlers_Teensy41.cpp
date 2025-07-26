@@ -165,7 +165,7 @@ bool AsyncStaticWebHandler::_getFile(AsyncWebServerRequest *request)
 bool AsyncStaticWebHandler::canHandle(AsyncWebServerRequest *request)
 {
   if (request->method() != HTTP_GET
-      || !request->url().startsWith(_uri)
+      || ((_uri.length() > 0) && (!request->url().startsWith(_uri)))
       || !request->isExpectedRequestedConnType(RCT_DEFAULT, RCT_HTTP)
      )
   {    
